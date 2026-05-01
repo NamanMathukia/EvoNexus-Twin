@@ -1,21 +1,16 @@
-"""
-app/app.py
-EvoNexus-Twin | Multi-Page Career Intelligence Engine
-Entry point: Profile Configuration & Prediction
-"""
-import sys
 import os
+import sys
 import streamlit as st
 
 # Ensure project root is on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.data.generator import SKILL_VOCABULARY
+from auth import get_login_url, get_tokens, get_user_info
 from utils import apply_custom_css
 
-# ── Page config ───────────────────────────────────────────────────────────────
+# Page config must be the first st command
 st.set_page_config(
-    page_title="EvoNexus-Twin | Profile Configuration",
+    page_title="EvoNexus-Twin | Login",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -23,101 +18,90 @@ st.set_page_config(
 
 apply_custom_css()
 
-# ── Sidebar Intro ─────────────────────────────────────────────────────────────
-st.sidebar.markdown("""
-<div style="text-align:center; padding: 10px 0 20px 0;">
-    <div style="font-size: 2.5rem;">🧬</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #e2e8f0;">EvoNexus-Twin</div>
-    <div style="font-size: 0.85rem; color: #94a3b8;">Career Intelligence Engine</div>
-</div>
-""", unsafe_allow_html=True)
+# Initialize authentication state
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+if "user_info" not in st.session_state:
+    st.session_state["user_info"] = None
 
-# ── Main Content ──────────────────────────────────────────────────────────────
-st.markdown("""
-<div style="padding: 10px 0 24px 0;">
-    <h1 style="margin:0; font-size:2.5rem; font-weight:700;
-               background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4);
-               -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        🧬 Student Profile Configuration
-    </h1>
-    <p style="color:#94a3b8; font-size: 1.1rem; margin-top:10px;">
-        Configure your academic and professional profile to generate a twin-driven placement prediction.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Profile Input Form ────────────────────────────────────────────────────────
-with st.form("profile_form"):
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### 🎓 Academic Profile")
-        cgpa = st.slider("CGPA", 4.0, 10.0, 7.5, 0.1)
-        academic_consistency = st.slider("Academic Consistency (0–1)", 0.0, 1.0, 0.75, 0.01)
-        
-        st.markdown("### 🛠 Skills & Demand")
-        skills = st.slider("Skill Breadth Score (0–1)", 0.0, 1.0, 0.45, 0.01)
-        skill_list = st.multiselect(
-            "Acquired Skills", SKILL_VOCABULARY,
-            default=["python", "sql", "machine_learning"]
-        )
-        skill_demand_score = st.slider("Target Market Demand (0–1)", 0.0, 1.0, 0.72, 0.01)
-
-    with col2:
-        st.markdown("### 💼 Professional Experience")
-        internship = st.selectbox("Have you completed an internship?", [1, 0], format_func=lambda x: "Yes" if x else "No")
-        internship_count = st.number_input("Number of Internships", 0, 5, 1 if internship else 0)
-        internship_quality = st.slider("Average Internship Quality (0–1)", 0.0, 1.0, 0.65, 0.01)
-        
-        st.markdown("### 🎯 Career Portal Engagement")
-        portal_activity = st.slider("Platform Activity Level (0–1)", 0.0, 1.0, 0.5, 0.01)
-        resume_updates = st.number_input("Resume Update Count", 0, 15, 3)
-        interviews = st.number_input("Mock Interviews Completed", 0, 25, 5)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    predict_btn = st.form_submit_button("⚡ Generate ENT Intelligence Report", use_container_width=True)
-
-if predict_btn:
-    sample = {
-        "cgpa": cgpa,
-        "skills": skills,
-        "academic_consistency": academic_consistency,
-        "internship": internship,
-        "internship_count": internship_count,
-        "internship_quality": internship_quality,
-        "portal_activity": portal_activity,
-        "resume_updates": resume_updates,
-        "interviews": interviews,
-        "skill_list": skill_list,
-        "skill_demand_score": skill_demand_score,
-        "market_demand": skill_demand_score,
-    }
-    
-    from src.predict import predict_full
-    try:
-        with st.spinner("Analyzing profile via ENT Neural Engine..."):
-            result = predict_full(sample)
-            st.session_state.result = result
-            st.session_state.sample = sample
-            st.success("✅ Intelligence Report Generated! Navigate to the 'Dashboard' in the sidebar to view results.")
-            st.balloons()
-    except Exception as e:
-        st.error(f"Error during prediction: {e}")
-
-# ── Architecture Info ─────────────────────────────────────────────────────────
-st.markdown('<div class="section-header">🏗 ENT Architecture Overview</div>', unsafe_allow_html=True)
-cols = st.columns(4)
-arch_items = [
-    ("📊", "Temporal Data", "Trajectory generation with semester-wise triplets."),
-    ("🕸", "Knowledge Graph", "NetworkX-based student-skill-job relationship mapping."),
-    ("🧠", "Neural Models", "LSTM sequence analysis & LGDESetNet skill interaction."),
-    ("📉", "Survival & Risk", "WeibullAFT time-to-job & XGBoost/LGBM ensemble.")
-]
-for col, (icon, title, desc) in zip(cols, arch_items):
-    col.markdown(f"""
-    <div class="metric-card">
-        <div style="font-size:2rem">{icon}</div>
-        <div style="font-weight:600; color:#e2e8f0; margin:8px 0 4px">{title}</div>
-        <div style="font-size:0.85rem; color:#94a3b8">{desc}</div>
+def login_page():
+    st.markdown("""
+    <div style="text-align:center; padding: 80px 0 20px 0;">
+        <div style="font-size: 5rem;">🧬</div>
+        <h1 style="font-size: 3.5rem; font-weight: 700; margin-top: 10px; background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            EvoNexus-Twin
+        </h1>
+        <p style="color:#94a3b8; font-size: 1.4rem; margin-top:10px;">
+            Career Intelligence Engine
+        </p>
     </div>
     """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.markdown("<div style='text-align: center; margin-top: 40px;'>", unsafe_allow_html=True)
+        login_url = get_login_url()
+        
+        # We use standard HTML for a sleek button
+        st.markdown(f'''
+        <a href="{login_url}" target="_self" style="text-decoration: none;">
+            <div style="background-color: #1e293b; color: white; padding: 14px 24px; border: 1px solid #334155; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <img src="https://www.google.com/favicon.ico" width="24" height="24" alt="Google">
+                Sign in with Google
+            </div>
+        </a>
+        ''', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+if not st.session_state["authenticated"]:
+    # Check if we are returning from Google Auth
+    if "code" in st.query_params:
+        try:
+            code = st.query_params["code"]
+            tokens = get_tokens(code)
+            user_info = get_user_info(tokens["access_token"])
+            
+            st.session_state["authenticated"] = True
+            st.session_state["user_info"] = user_info
+            
+            # Clear query params so refresh doesn't fail with used code
+            st.query_params.clear()
+            st.rerun()
+        except Exception as e:
+            st.error(f"Authentication failed: {e}")
+            st.stop()
+    else:
+        # Define and run the login page only
+        pg = st.navigation([st.Page(login_page, title="Login", icon="🔒")])
+        pg.run()
+        st.stop()
+
+# If authenticated, show the dashboard
+if st.session_state["authenticated"]:
+    # Define dashboard pages
+    home = st.Page("views/0_🏠_Home.py", title="Profile Config", icon="🧬")
+    overview = st.Page("views/1_📊_Overview.py", title="Overview", icon="📊")
+    risk_analysis = st.Page("views/2_🔍_Risk_Analysis.py", title="Risk Analysis", icon="🔍")
+    career_roadmap = st.Page("views/3_🛣️_Career_Roadmap.py", title="Career Roadmap", icon="🛣️")
+    placement_strategy = st.Page("views/4_💼_Placement_Strategy.py", title="Placement Strategy", icon="💼")
+    
+    pg = st.navigation({
+        "Dashboard": [home, overview, risk_analysis, career_roadmap, placement_strategy]
+    })
+    
+    # Sidebar user profile & logout
+    with st.sidebar:
+        st.markdown(f"""
+        <div style="padding: 10px 0; border-bottom: 1px solid #334155; margin-bottom: 20px;">
+            <div style="font-weight: bold; color: #e2e8f0; font-size: 1.1rem;">{st.session_state['user_info'].get('name', 'User')}</div>
+            <div style="font-size: 0.85rem; color: #94a3b8;">{st.session_state['user_info'].get('email', '')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Logout", use_container_width=True):
+            st.session_state["authenticated"] = False
+            st.session_state["user_info"] = None
+            st.rerun()
+
+    # Run the navigation
+    pg.run()
