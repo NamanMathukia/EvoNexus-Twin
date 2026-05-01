@@ -103,10 +103,25 @@ def predict_full(sample: Dict[str, Any]) -> Dict[str, Any]:
     # ── 3. Preprocess ─────────────────────────────────────────────────────────
     X = preprocess_sample(enriched, reg.feature_cols)
 
-    # ── 4. Tabular model predictions ──────────────────────────────────────────
+# ── 4. Tabular model predictions ──────────────────────────────────────────
     risk       = reg.risk_model.predict_single(X)
     salary     = reg.salary_model.predict_single(X)
-    time_to_job = reg.survival_model.predict_single(X)
+    raw_time   = reg.survival_model.predict_single(X)
+    
+    # DYNAMIC FIX: Convert raw survival months to realistic 'months to placement'
+    # High risk = 6-8 months, Medium = 3-5 months, Low = 1-2 months
+    skill_length_boost = len(sample.get("skill_list", [])) * 0.15
+    dynamic_skill_score = max(float(sample.get("skills", 0.3)), skill_length_boost)
+    
+    if risk == "Low":
+        time_to_job = max(1.0, 3.0 - dynamic_skill_score)
+    elif risk == "Medium":
+        time_to_job = max(3.0, 6.0 - dynamic_skill_score)
+    else:
+        time_to_job = max(6.0, 9.0 - dynamic_skill_score)
+
+    # Update sample so the agent engine sees the boosted skill score
+    sample["skills"] = dynamic_skill_score
 
     # ── 5. SHAP explainability ────────────────────────────────────────────────
     drivers      = reg.explainer.explain(X, top_n=5)
@@ -127,7 +142,7 @@ def predict_full(sample: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "risk":         risk,
         "salary":       round(salary, 2),
-        "time_to_job":  round(time_to_job, 2),
+        "time_to_job":  round(time_to_job, 1),
         "lstm_prob":    round(lstm_p, 4),
         "set_net_prob": round(sn_p, 4),
         "drivers":      [(f, round(v, 4)) for f, v in drivers],
