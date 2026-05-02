@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 app/users.json
 history_files/
+
+# PKCE verifier cache during Google OAuth redirect (rotates; ignore)
+.oauth_pkce_pending/
