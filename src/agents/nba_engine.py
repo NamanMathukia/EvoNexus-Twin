@@ -95,7 +95,7 @@ class NBAEngine:
 
         # ── Improvement roadmap (LLM-Generated) ──────────────────────────────
         roadmap = _build_roadmap(
-            risk_level, skill_out, advisor_out, mentor_out, time_to_job, sample
+            risk_level, skill_out, advisor_out, mentor_out, time_to_job, sample, shap_drivers
         )
 
         return {
@@ -115,7 +115,8 @@ def _build_roadmap(
     advisor_out: Dict,
     mentor_out: Dict,
     time_to_job: float,
-    sample: Dict[str, Any]
+    sample: Dict[str, Any],
+    shap_drivers: List[Tuple[str, float]]
 ) -> List[Dict[str, str]]:
     """Calculates strict time horizons in Python and uses Groq to generate the text."""
     
@@ -144,12 +145,18 @@ def _build_roadmap(
             format_phase(max(p2 + 1, p3) + 1, total_months)
         ]
 
+    # Map SHAP drivers into a readable list of strengths vs risk factors
+    risk_factors = [f"{feat} (Impact: {val:+.2f})" for feat, val in shap_drivers if val > 0]
+    strengths = [f"{feat} (Impact: {val:+.2f})" for feat, val in shap_drivers if val < 0]
+
     profile_context = {
         "cgpa": sample.get("cgpa", 7.0),
         "internships": sample.get("internship_count", 0),
         "skills": sample.get("skill_list", ["Core Programming"]),
         "risk_level": risk_level,
         "target_tier": advisor_out.get("target_tier", "Tier-3"),
+        "key_risk_factors": risk_factors[:3], # Top 3 reasons for risk
+        "key_strengths": strengths[:3]        # Top 3 strengths
     }
 
     # 2. Craft the strictly constrained prompt
@@ -171,7 +178,7 @@ def _build_roadmap(
     user_prompt = f"Create the roadmap for this student profile: {json.dumps(profile_context)}"
 
     # 3. Call the Free Groq API
-    api_key = os.environ.get("GROQ_API_KEY", "YOUR_GROK_API_KEY") # Replace with your key
+    api_key = os.environ.get("GROQ_API_KEY", "YOUR_GROQ_API_KEY") # Replace with your key
     
     try:
         response = requests.post(

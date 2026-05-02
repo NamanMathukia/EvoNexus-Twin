@@ -6,6 +6,7 @@ Features Local History Caching.
 """
 import os
 import json
+import uuid
 from datetime import datetime
 import streamlit as st
 import plotly.graph_objects as go
@@ -40,7 +41,7 @@ def load_history():
     except:
         return []
 
-def save_to_history(source_name, result_data, sample_data):
+def save_to_history(source_name, result_data, sample_data, input_text=None, file_path=None, file_name=None):
     """Saves the current analysis to the history file."""
     user_email = get_current_user_email()
     if not os.path.exists(HISTORY_FILE):
@@ -60,7 +61,10 @@ def save_to_history(source_name, result_data, sample_data):
         "tier": result_data.get("actions", {}).get("placement_advisor", {}).get("target_tier", "Unknown"),
         "result": result_data,
         "sample": sample_data,
-        "user_email": user_email
+        "user_email": user_email,
+        "input_text": input_text,
+        "file_path": file_path,
+        "file_name": file_name
     }
     
     all_history.insert(0, new_record)
@@ -122,6 +126,10 @@ with st.sidebar:
                 # When clicked, load this data into the main session state
                 st.session_state.result = item["result"]
                 st.session_state.sample = item["sample"]
+                st.session_state.history_source_type = "text" if item.get("input_text") else "file" if item.get("file_path") else None
+                st.session_state.history_input_text = item.get("input_text")
+                st.session_state.history_file_path = item.get("file_path")
+                st.session_state.history_file_name = item.get("file_name")
                 st.rerun() # Force the page to refresh and show this data
 
 
@@ -154,10 +162,14 @@ with tab1:
                         api_data = response.json()
                         st.session_state.result = api_data.get("analysis", {})
                         st.session_state.sample = api_data.get("extracted_data", {})
+                        st.session_state.history_source_type = "text"
+                        st.session_state.history_input_text = resume_input
+                        st.session_state.history_file_path = None
+                        st.session_state.history_file_name = None
                         st.success("Analysis Complete!")
                         
                         # Save to history
-                        save_to_history("Pasted Text", st.session_state.result, st.session_state.sample)
+                        save_to_history("Pasted Text", st.session_state.result, st.session_state.sample, input_text=resume_input)
                     else:
                         st.error(f"API Error {response.status_code}: {response.text}")
                 except Exception as e:
@@ -176,10 +188,23 @@ with tab2:
                         api_data = response.json()
                         st.session_state.result = api_data.get("analysis", {})
                         st.session_state.sample = api_data.get("extracted_data", {})
+                        
+                        # Save file locally for history
+                        os.makedirs("history_files", exist_ok=True)
+                        unique_id = uuid.uuid4().hex
+                        save_path = os.path.join("history_files", f"{unique_id}_{uploaded_file.name}")
+                        with open(save_path, "wb") as f:
+                            f.write(uploaded_file.getvalue())
+                            
+                        st.session_state.history_source_type = "file"
+                        st.session_state.history_input_text = None
+                        st.session_state.history_file_path = save_path
+                        st.session_state.history_file_name = uploaded_file.name
+                        
                         st.success(f"Successfully analyzed {uploaded_file.name}")
                         
                         # Save to history
-                        save_to_history(uploaded_file.name, st.session_state.result, st.session_state.sample)
+                        save_to_history(uploaded_file.name, st.session_state.result, st.session_state.sample, file_path=save_path, file_name=uploaded_file.name)
                     else:
                         st.error(f"API Error {response.status_code}: {response.text}")
                 except Exception as e:
@@ -195,12 +220,54 @@ if "result" in st.session_state and "sample" in st.session_state:
     drivers = result.get("drivers", [])
 
     st.markdown("---")
+    
+    # --- Display Input Source ---
+    source_type = st.session_state.get("history_source_type")
+    if source_type:
+        with st.expander("📄 View Input Source"):
+            if source_type == "text":
+                st.text_area("Original Input Text", value=st.session_state.get("history_input_text", ""), height=200, disabled=True)
+            elif source_type == "file":
+                file_path = st.session_state.get("history_file_path")
+                file_name = st.session_state.get("history_file_name", "Resume")
+                if file_path and os.path.exists(file_path):
+                    with open(file_path, "rb") as f:
+                        file_bytes = f.read()
+                    st.download_button(
+                        label=f"⬇️ Download Original File ({file_name})",
+                        data=file_bytes,
+                        file_name=file_name,
+                        mime="application/octet-stream",
+                        key=f"dl_{file_path}"
+                    )
+                    if file_name.lower().endswith(".pdf"):
+                        import base64
+                        import uuid
+                        base64_pdf = base64.b64encode(file_bytes).decode('utf-8')
+                        pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf" id="pdf_{uuid.uuid4().hex}">'
+                        st.markdown(pdf_display, unsafe_allow_html=True)
+                else:
+                    st.warning("Original file could not be found.")
+
+    st.markdown("---")
+    
+    # Calculate Benchmarks
+    salary = result.get('salary', 0)
+    time_to_job = result.get('time_to_job', 0)
+    tier = result.get("actions", {}).get("placement_advisor", {}).get("target_tier", "Tier-3")
+    
+    baseline_salary = 12.0 if tier == "Tier-1" else 9.0 if tier == "Tier-2" else 6.0
+    baseline_time = 2.0 if tier == "Tier-1" else 4.0 if tier == "Tier-2" else 6.0
+    
+    salary_delta = f"{salary - baseline_salary:+.1f} LPA vs Avg" if salary else None
+    time_delta = f"{time_to_job - baseline_time:+.1f} Mo vs Avg" if time_to_job else None
 
     # Top-Level Metrics
     rcol1, rcol2, rcol3 = st.columns(3)
-    rcol1.metric("Predicted Salary", f"₹{result.get('salary', 'N/A')} LPA")
-    rcol2.metric("Time to Placement", f"{result.get('time_to_job', 'N/A')} Months")
-    rcol3.metric("Target Tier", result.get("actions", {}).get("placement_advisor", {}).get("target_tier", "N/A"))
+    rcol1.metric("Predicted Salary", f"₹{salary} LPA", salary_delta)
+    # Inverse color for time (less is better)
+    rcol2.metric("Time to Placement", f"{time_to_job} Months", time_delta, delta_color="inverse")
+    rcol3.metric("Target Tier", tier)
     
     st.subheader(f"Risk Level: {result.get('risk', 'N/A')}")
     st.info(result.get("summary", "Summary not available."))
@@ -219,30 +286,37 @@ if "result" in st.session_state and "sample" in st.session_state:
 
     # Row 2: SHAP Waterfall
     if drivers:
-        st.markdown('<div class="section-header">🧬 SHAP Risk Drivers (Impact Analysis)</div>', unsafe_allow_html=True)
-        features = [d[0].replace("_", " ") for d in drivers]
-        values   = [d[1] for d in drivers]
-        colors   = ["#ef4444" if v > 0 else "#22c55e" for v in values]
+        st.markdown('<div class="section-header">🧬 SHAP Risk Drivers (Waterfall)</div>', unsafe_allow_html=True)
+        # Reverse to show most impactful at the bottom, or keep as is.
+        features = [d[0].replace("_", " ") for d in drivers][::-1]
+        values   = [d[1] for d in drivers][::-1]
+        
+        # Calculate a mock 'base risk' to make the waterfall visually flow into the final risk
+        # This makes the visualization intuitive
+        base_risk = 0.5 - sum(values)
 
-        fig = go.Figure(go.Bar(
-            x=values, y=features, orientation="h",
-            marker_color=colors,
-            text=[f"{v:+.4f}" for v in values],
+        fig = go.Figure(go.Waterfall(
+            name="SHAP", orientation="h",
+            measure=["relative"] * len(features),
+            y=features, x=values,
             textposition="outside",
-            textfont={"color": "#e2e8f0", "size": 12},
+            text=[f"{v:+.3f}" for v in values],
+            decreasing={"marker":{"color":"#22c55e"}},
+            increasing={"marker":{"color":"#ef4444"}},
+            totals={"marker":{"color":"#3b82f6"}}
         ))
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(15,23,42,0.6)",
             font_color="#e2e8f0",
-            xaxis={"title": "SHAP Value (Contribution to Risk)", "gridcolor": "#374151"},
-            yaxis={"gridcolor": "#374151", "autorange": "reversed"},
-            height=400,
+            xaxis={"title": "SHAP Impact (Risk Contribution)", "gridcolor": "#374151"},
+            yaxis={"gridcolor": "#374151"},
+            height=450,
             margin=dict(l=20, r=80, t=20, b=20),
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Row 3: Interactions & Trajectory
+    # Row 3: Interactions & What-If Simulator
     col1, col2 = st.columns([1, 1])
 
     with col1:
@@ -262,24 +336,35 @@ if "result" in st.session_state and "sample" in st.session_state:
             st.write("No interactions detected.")
 
     with col2:
-        st.markdown('<div class="section-header">📈 Simulated Trajectory</div>', unsafe_allow_html=True)
-        sems = list(range(1, 9))
-        cgpa = sample.get("cgpa", 7.0)
-        skill = sample.get("skills", 0.3)
-        cgpa_vals  = [round(cgpa * (0.88 + 0.015 * s), 2) for s in sems]
-        skill_vals = [round(skill * (s / 8), 3) for s in sems]
-
-        fig_t = go.Figure()
-        fig_t.add_trace(go.Scatter(x=sems, y=cgpa_vals, name="CGPA", line={"color": "#3b82f6", "width": 3}))
-        fig_t.add_trace(go.Scatter(x=sems, y=[v * 10 for v in skill_vals], name="Skills x10", line={"color": "#a78bfa", "width": 3, "dash": "dot"}))
-        fig_t.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15,23,42,0.6)",
-            font_color="#e2e8f0", height=300,
-            xaxis={"title": "Semester", "gridcolor": "#374151"},
-            yaxis={"title": "Metric Value", "gridcolor": "#374151"},
-            margin=dict(l=10, r=10, t=10, b=10),
-        )
-        st.plotly_chart(fig_t, use_container_width=True)
+        st.markdown('<div class="section-header">🔮 What-If Simulator</div>', unsafe_allow_html=True)
+        st.markdown("<p style='color:#94a3b8; font-size: 0.9rem;'>Test how improving your profile affects your predicted salary.</p>", unsafe_allow_html=True)
+        
+        with st.form("what_if_form"):
+            sim_cgpa = st.slider("Target CGPA", 4.0, 10.0, float(sample.get("cgpa", 7.0)), 0.1)
+            sim_interns = st.number_input("Add Internships", 0, 5, int(sample.get("internship_count", 0)))
+            sim_skills = st.slider("Improve Skills Score", 0.0, 1.0, float(sample.get("skills", 0.4)), 0.05)
+            
+            sim_btn = st.form_submit_button("Simulate Future", use_container_width=True)
+            
+        if sim_btn:
+            # Build a modified sample
+            sim_sample = sample.copy()
+            sim_sample["cgpa"] = sim_cgpa
+            sim_sample["internship_count"] = sim_interns
+            sim_sample["internship"] = 1 if sim_interns > 0 else 0
+            sim_sample["skills"] = sim_skills
+            
+            with st.spinner("Simulating..."):
+                from src.predict import predict_full
+                try:
+                    sim_result = predict_full(sim_sample)
+                    new_salary = sim_result.get('salary', 0)
+                    new_risk = sim_result.get('risk', 'Unknown')
+                    
+                    st.success(f"**New Projected Salary:** ₹{new_salary} LPA ({(new_salary - salary):+.1f} LPA)")
+                    st.info(f"**New Risk Level:** {new_risk}")
+                except Exception as e:
+                    st.error("Simulation failed.")
 
     # ── Agentic Roadmap & Download ───────────────────────────────────────────
     st.markdown('<div class="section-header">🤖 Agentic Intervention Roadmap</div>', unsafe_allow_html=True)

@@ -8,6 +8,25 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from auth import get_login_url, get_tokens, get_user_info
 from utils import apply_custom_css
 
+import json
+from streamlit_cookies_controller import CookieController
+
+# Initialize cookie controller
+controller = CookieController()
+
+
+def get_runtime_redirect_uri() -> str:
+    """Build redirect URI from the active request host to avoid host mismatches."""
+    try:
+        host = st.context.headers["host"]
+    except Exception:
+        host = ""
+
+    host = (host or "").strip()
+    if host:
+        return f"http://{host}"
+    return "http://localhost:8501"
+
 # Page config must be the first st command
 st.set_page_config(
     page_title="EvoNexus-Twin | Login",
@@ -23,6 +42,14 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 if "user_info" not in st.session_state:
     st.session_state["user_info"] = None
+
+# Attempt to restore auth from cookie
+cookie_email = controller.get('auth_email')
+cookie_name = controller.get('auth_name')
+
+if cookie_email and not st.session_state["authenticated"]:
+    st.session_state["authenticated"] = True
+    st.session_state["user_info"] = {"email": cookie_email, "name": cookie_name or "User"}
 
 def login_page():
     st.markdown("""
@@ -40,7 +67,8 @@ def login_page():
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         st.markdown("<div style='text-align: center; margin-top: 40px;'>", unsafe_allow_html=True)
-        login_url = get_login_url()
+        redirect_uri = get_runtime_redirect_uri()
+        login_url = get_login_url(redirect_uri=redirect_uri)
         
         # We use standard HTML for a sleek button
         st.markdown(f'''
@@ -58,17 +86,37 @@ if not st.session_state["authenticated"]:
     if "code" in st.query_params:
         try:
             code = st.query_params["code"]
-            tokens = get_tokens(code)
+            redirect_uri = get_runtime_redirect_uri()
+            tokens = get_tokens(code, redirect_uri=redirect_uri)
             user_info = get_user_info(tokens["access_token"])
             
             st.session_state["authenticated"] = True
             st.session_state["user_info"] = user_info
+            
+            # Save to cookies
+            controller.set('auth_email', user_info.get("email", ""))
+            controller.set('auth_name', user_info.get("name", ""))
             
             # Clear query params so refresh doesn't fail with used code
             st.query_params.clear()
             st.rerun()
         except Exception as e:
             st.error(f"Authentication failed: {e}")
+            # Remove OAuth params so reload does not replay an already-used/expired code.
+            for key in ("code", "scope", "authuser", "hd", "prompt"):
+                try:
+                    del st.query_params[key]
+                except KeyError:
+                    pass
+            st.caption(
+                "If this persists: in Google Cloud Console, under APIs & Services → Credentials, "
+                "the authorized redirect URI must match `REDIRECT_URI` exactly "
+                "(including `localhost` vs `127.0.0.1` and no trailing slash unless you registered one). "
+                "Sign in again from the login page."
+            )
+            st.caption(f"Current callback URI used by app: `{get_runtime_redirect_uri()}`")
+            if st.button("Return to login"):
+                st.rerun()
             st.stop()
     else:
         # Define and run the login page only
@@ -76,18 +124,39 @@ if not st.session_state["authenticated"]:
         pg.run()
         st.stop()
 
+# Helper to check if user profile exists
+def has_profile(email):
+    users_file = os.path.join(os.path.dirname(__file__), "users.json")
+    if not os.path.exists(users_file):
+        return False
+    try:
+        with open(users_file, "r") as f:
+            users = json.load(f)
+            return email in users
+    except:
+        return False
+
 # If authenticated, show the dashboard
 if st.session_state["authenticated"]:
-    # Define dashboard pages
-    home = st.Page("views/0_🏠_Home.py", title="Profile Config", icon="🧬")
-    overview = st.Page("views/1_📊_Overview.py", title="Overview", icon="📊")
-    risk_analysis = st.Page("views/2_🔍_Risk_Analysis.py", title="Risk Analysis", icon="🔍")
-    career_roadmap = st.Page("views/3_🛣️_Career_Roadmap.py", title="Career Roadmap", icon="🛣️")
-    placement_strategy = st.Page("views/4_💼_Placement_Strategy.py", title="Placement Strategy", icon="💼")
+    user_email = st.session_state["user_info"].get("email")
+    needs_setup = not has_profile(user_email)
     
-    pg = st.navigation({
-        "Dashboard": [home, overview, risk_analysis, career_roadmap, placement_strategy]
-    })
+    if needs_setup:
+        # User MUST setup profile first
+        setup_page = st.Page("views/0_🏠_Home.py", title="Setup Profile", icon="⚙️")
+        pg = st.navigation([setup_page])
+    else:
+        # Define full dashboard pages
+        home = st.Page("views/0_🏠_Home.py", title="Edit Profile", icon="⚙️")
+        overview = st.Page("views/1_📊_Overview.py", title="Overview", icon="📊")
+        risk_analysis = st.Page("views/2_🔍_Risk_Analysis.py", title="Risk Analysis", icon="🔍")
+        career_roadmap = st.Page("views/3_🛣️_Career_Roadmap.py", title="Career Roadmap", icon="🛣️")
+        placement_strategy = st.Page("views/4_💼_Placement_Strategy.py", title="Placement Strategy", icon="💼")
+        
+        pg = st.navigation({
+            "Dashboard": [overview, risk_analysis, career_roadmap, placement_strategy],
+            "Settings": [home]
+        })
     
     # Sidebar user profile & logout
     with st.sidebar:
@@ -99,6 +168,8 @@ if st.session_state["authenticated"]:
         """, unsafe_allow_html=True)
         
         if st.button("Logout", use_container_width=True):
+            controller.remove('auth_email')
+            controller.remove('auth_name')
             st.session_state["authenticated"] = False
             st.session_state["user_info"] = None
             st.rerun()
