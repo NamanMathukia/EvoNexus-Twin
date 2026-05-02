@@ -2,16 +2,50 @@
 app/pages/1_📊_Overview.py
 High-level KPIs and Executive Summary.
 """
+import os
+import json
 import streamlit as st
 from utils import apply_custom_css, risk_color
 
 st.set_page_config(page_title="ENT | Overview", page_icon="📊", layout="wide")
 apply_custom_css()
 
-if "result" not in st.session_state:
-    st.warning("⚠️ No profile data found. Please go to the **Home** page and run the prediction first.")
-    st.stop()
+# --- AUTO-LOADER: Fetch saved profile on fresh login ---
+if "result" not in st.session_state or "sample" not in st.session_state:
+    # 1. Grab the current user's email
+    user_info = st.session_state.get("user_info")
+    user_email = user_info.get("email") if user_info else None
+    
+    profile_loaded = False
+    
+    if user_email:
+        # 2. Check the local database (users.json)
+        USERS_FILE = os.path.join(os.path.dirname(__file__), "..", "users.json")
+        if os.path.exists(USERS_FILE):
+            try:
+                with open(USERS_FILE, "r") as f:
+                    saved_profile = json.load(f).get(user_email, {})
+                
+                # 3. If they have a saved profile, run the ML engine instantly
+                if saved_profile:
+                    with st.spinner("Rebuilding your dashboard..."):
+                        from src.predict import predict_full
+                        result = predict_full(saved_profile)
+                        
+                        # 4. Save to session state so the charts can render
+                        st.session_state.sample = saved_profile
+                        st.session_state.result = result
+                        profile_loaded = True
+            except Exception as e:
+                st.error(f"Error loading saved profile: {e}")
 
+    # 5. Failsafe: If they STILL have no data (e.g. brand new user), stop the page
+    if not profile_loaded:
+        st.warning("⚠️ No profile data found. Please go to the **Home** page and complete your profile setup first.")
+        st.stop()
+# -------------------------------------------------------
+
+# By the time the code reaches here, it is 100% guaranteed to have the data!
 result = st.session_state.result
 risk = result["risk"]
 salary = result["salary"]

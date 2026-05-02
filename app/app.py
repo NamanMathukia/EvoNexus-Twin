@@ -184,8 +184,14 @@ if st.session_state["authenticated"]:
         """, unsafe_allow_html=True)
         
         if st.button("Logout", use_container_width=True):
-            controller.remove('auth_email')
-            controller.remove('auth_name')
+            try:
+                controller.remove('auth_email')
+            except KeyError:
+                pass
+            try:
+                controller.remove('auth_name')
+            except KeyError:
+                pass
             st.session_state["authenticated"] = False
             st.session_state["user_info"] = None
             st.session_state.pop("_oauth_last_success_code", None)
