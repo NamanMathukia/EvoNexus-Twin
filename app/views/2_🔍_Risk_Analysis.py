@@ -22,20 +22,36 @@ apply_custom_css()
 # --- HISTORY SYSTEM ---
 HISTORY_FILE = "history.json"
 
+def get_current_user_email():
+    if "user_info" in st.session_state and st.session_state["user_info"]:
+        return st.session_state["user_info"].get("email", "unknown")
+    return "unknown"
+
 def load_history():
     """Loads the analysis history from a local JSON file."""
     if not os.path.exists(HISTORY_FILE):
         return []
     try:
         with open(HISTORY_FILE, "r") as f:
-            return json.load(f)
+            all_history = json.load(f)
+            user_email = get_current_user_email()
+            # If a history record doesn't have an email, it will default to None, so only unknown/matched emails are returned
+            return [h for h in all_history if h.get("user_email", "unknown") == user_email]
     except:
         return []
 
 def save_to_history(source_name, result_data, sample_data):
     """Saves the current analysis to the history file."""
-    history = load_history()
-    
+    user_email = get_current_user_email()
+    if not os.path.exists(HISTORY_FILE):
+        all_history = []
+    else:
+        try:
+            with open(HISTORY_FILE, "r") as f:
+                all_history = json.load(f)
+        except:
+            all_history = []
+            
     new_record = {
         "id": datetime.now().strftime("%Y%m%d%H%M%S"),
         "timestamp": datetime.now().strftime("%b %d, %I:%M %p"),
@@ -43,15 +59,18 @@ def save_to_history(source_name, result_data, sample_data):
         "risk": result_data.get("risk", "Unknown"),
         "tier": result_data.get("actions", {}).get("placement_advisor", {}).get("target_tier", "Unknown"),
         "result": result_data,
-        "sample": sample_data
+        "sample": sample_data,
+        "user_email": user_email
     }
     
-    # Add to beginning, keep last 10
-    history.insert(0, new_record)
-    history = history[:10] 
+    all_history.insert(0, new_record)
+    
+    # Keep last 10 for the current user, while preserving other users' histories
+    user_history = [h for h in all_history if h.get("user_email", "unknown") == user_email][:10]
+    other_history = [h for h in all_history if h.get("user_email", "unknown") != user_email]
     
     with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f)
+        json.dump(user_history + other_history, f)
 
 
 # --- PDF Generation Function ---

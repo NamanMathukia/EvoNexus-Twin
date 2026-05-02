@@ -171,7 +171,7 @@ def _build_roadmap(
     user_prompt = f"Create the roadmap for this student profile: {json.dumps(profile_context)}"
 
     # 3. Call the Free Groq API
-    api_key = os.environ.get("GROQ_API_KEY", "YOUR_API_KEY_HERE") # Replace with your key
+    api_key = os.environ.get("GROQ_API_KEY", "YOUR_GROK_API_KEY") # Replace with your key
     
     try:
         response = requests.post(

@@ -8,6 +8,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 
+class TextEvaluateRequest(BaseModel):
+    resume_text: str = Field(..., description="Raw text of the candidate's resume/profile")
+
+
 class StudentInput(BaseModel):
     cgpa:                 float = Field(7.5,  ge=0.0, le=10.0, description="CGPA (0-10)")
     skills:               float = Field(0.4,  ge=0.0, le=1.0,  description="Normalised skill breadth (0-1)")
