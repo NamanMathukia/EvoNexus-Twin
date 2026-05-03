@@ -12,7 +12,7 @@ from utils import apply_custom_css, render_topbar
 
 # --- 1. SET PAGE CONFIG FIRST ---
 st.set_page_config(
-    page_title="EvoNexus-Twin",
+    page_title="EvoNexus-Twin | Career Intelligence",
     page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -107,61 +107,62 @@ if cookie_email and not st.session_state["authenticated"] and not _oauth_code:
 # --- 5. RENDER LOGIN PAGE ---
 def login_page():
     st.markdown("""
-    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px;">
-        <div style="text-align:center; max-width: 480px; width:100%;">
+    <div style="min-height:90vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 0 20px;">
+        <div style="text-align:center; max-width: 440px; width:100%;">
             <div style="
                 font-family:'Space Grotesk',sans-serif;
-                font-size: 3.2rem;
+                font-size: 3.5rem;
                 font-weight: 800;
-                letter-spacing: -0.02em;
+                letter-spacing: -0.04em;
                 background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                margin-bottom: 10px;
-            ">EVONEXUS-TWIN</div>
-            <p style="color:#475569; font-size:0.85rem; letter-spacing:0.18em; text-transform:uppercase; margin-bottom: 48px;">
-                Career Intelligence Engine
+                margin-bottom: 0px;
+                line-height: 1;
+            ">EVONEXUS</div>
+            <p style="color:#475569; font-size:0.75rem; letter-spacing:0.3em; text-transform:uppercase; margin-bottom: 40px; font-weight: 600;">
+                Intelligence Engine
             </p>
             <div style="
-                background: rgba(15,23,42,0.7);
-                border: 1px solid rgba(51,65,85,0.6);
-                border-radius: 16px;
-                padding: 36px 32px;
-                backdrop-filter: blur(16px);
-                box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+                background: rgba(15,23,42,0.6);
+                border: 1px solid rgba(51,65,85,0.4);
+                border-radius: 24px;
+                padding: 40px;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             ">
-                <p style="color:#64748b; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:24px;">
-                    Authenticate to continue
+                <p style="color:#94a3b8; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:30px; font-weight:500;">
+                    Secure Authentication Required
                 </p>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
         redirect_uri = get_runtime_redirect_uri()
         login_url = authorization_url_with_pkce(redirect_uri)
         st.markdown(f"""
         <a href="{login_url}" target="_self" style="text-decoration:none; display:block;">
             <div style="
-                background: rgba(30,41,59,0.9);
-                color: #e2e8f0;
-                padding: 13px 24px;
-                border: 1px solid rgba(59,130,246,0.35);
-                border-radius: 10px;
-                font-size: 0.9rem;
-                font-weight: 600;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+                color: #f8fafc;
+                padding: 14px 24px;
+                border: 1px solid rgba(59,130,246,0.3);
+                border-radius: 12px;
+                font-size: 0.85rem;
+                font-weight: 700;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                transition: all 0.25s ease;
-                letter-spacing: 0.04em;
-                box-shadow: 0 0 20px rgba(59,130,246,0.12);
+                gap: 12px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
             "
-            onmouseover="this.style.boxShadow='0 0 30px rgba(59,130,246,0.35)'; this.style.borderColor='rgba(59,130,246,0.6)'"
-            onmouseout="this.style.boxShadow='0 0 20px rgba(59,130,246,0.12)'; this.style.borderColor='rgba(59,130,246,0.35)'"
+            onmouseover="this.style.boxShadow='0 0 30px rgba(59,130,246,0.25)'; this.style.borderColor='rgba(59,130,246,0.6)'; this.style.background='rgba(59, 130, 246, 0.2)'"
+            onmouseout="this.style.boxShadow='none'; this.style.borderColor='rgba(59,130,246,0.3)'; this.style.background='rgba(59, 130, 246, 0.15)'"
             >
-                <img src="https://www.google.com/favicon.ico" width="18" height="18" alt="G">
+                <img src="https://www.google.com/favicon.ico" width="16" height="16" alt="G">
                 Sign in with Google
             </div>
         </a>
@@ -178,99 +179,50 @@ if not st.session_state["authenticated"]:
 if "intro_played" not in st.session_state:
     st.markdown("""
     <style>
-    @keyframes gridExpand {
-        0%   { opacity: 0; transform: scale(0.85); }
-        15%  { opacity: 1; }
-        85%  { opacity: 1; transform: scale(1); }
-        100% { opacity: 0; transform: scale(1.04); }
+    @keyframes gridPulse {
+        0%   { opacity: 0; transform: perspective(500px) rotateX(60deg) translateY(0); }
+        50%  { opacity: 0.5; }
+        100% { opacity: 0; transform: perspective(500px) rotateX(60deg) translateY(-50px); }
     }
-    @keyframes wordmark {
-        0%   { opacity: 0; letter-spacing: 0.6em; filter: blur(8px); }
-        30%  { opacity: 1; letter-spacing: 0.12em; filter: blur(0); }
-        75%  { opacity: 1; }
-        100% { opacity: 0; }
+    @keyframes logoDraw {
+        0%   { opacity: 0; filter: blur(10px); transform: scale(0.9); letter-spacing: 1em; }
+        40%  { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: 0.1em; }
+        80%  { opacity: 1; }
+        100% { opacity: 0; transform: scale(1.05); }
     }
-    @keyframes tagline {
-        0%, 30% { opacity: 0; transform: translateY(10px); }
-        50%     { opacity: 1; transform: translateY(0); }
-        80%     { opacity: 1; }
-        100%    { opacity: 0; }
-    }
-    @keyframes scanline {
-        0%   { top: -10%; }
-        100% { top: 110%; }
+    @keyframes neonGlow {
+        0%, 100% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        50%      { text-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(167, 139, 250, 0.4); }
     }
     #ent-splash {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
+        position: fixed; inset: 0; z-index: 99999;
         background: #070b14;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
         overflow: hidden;
     }
     #ent-splash-grid {
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px);
-        background-size: 50px 50px;
-        animation: gridExpand 2.6s ease forwards;
+        position: absolute; bottom: 0; width: 200%; height: 100%;
+        background-image: 
+            linear-gradient(rgba(59,130,246,0.2) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.2) 1px, transparent 1px);
+        background-size: 60px 60px;
+        animation: gridPulse 2.5s linear forwards;
+        transform: perspective(500px) rotateX(60deg);
+        mask-image: linear-gradient(to top, black, transparent);
     }
-    #ent-splash-scanline {
-        position: absolute;
-        left: 0; right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent);
-        animation: scanline 2.5s linear forwards;
-        pointer-events: none;
-    }
-    #ent-splash-wordmark {
-        font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: clamp(2.2rem, 5vw, 4.5rem);
-        font-weight: 800;
+    #ent-splash-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 5rem; font-weight: 800;
         background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        animation: wordmark 2.5s cubic-bezier(0.16,1,0.3,1) forwards;
+        animation: logoDraw 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, neonGlow 2s ease-in-out infinite;
         position: relative; z-index: 2;
-    }
-    #ent-splash-tag {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.72rem;
-        letter-spacing: 0.26em;
-        text-transform: uppercase;
-        color: #475569;
-        margin-top: 14px;
-        animation: tagline 2.5s ease forwards;
-        position: relative; z-index: 2;
-    }
-    #ent-splash-ring {
-        position: absolute;
-        width: 320px; height: 320px;
-        border-radius: 50%;
-        border: 1px solid rgba(59,130,246,0.12);
-        box-shadow: 0 0 60px rgba(59,130,246,0.08) inset;
-        animation: gridExpand 2.6s ease forwards;
-    }
-    #ent-splash-ring2 {
-        position: absolute;
-        width: 520px; height: 520px;
-        border-radius: 50%;
-        border: 1px solid rgba(167,139,250,0.08);
-        animation: gridExpand 2.6s ease 0.1s forwards;
     }
     </style>
     <div id="ent-splash">
         <div id="ent-splash-grid"></div>
-        <div id="ent-splash-scanline"></div>
-        <div id="ent-splash-ring2"></div>
-        <div id="ent-splash-ring"></div>
-        <div id="ent-splash-wordmark">EVONEXUS-TWIN</div>
-        <div id="ent-splash-tag">Career Intelligence Engine</div>
+        <div id="ent-splash-title">EVONEXUS</div>
     </div>
     """, unsafe_allow_html=True)
     time.sleep(2.5)
@@ -301,21 +253,25 @@ if st.session_state["authenticated"]:
         st.session_state["user_info"] = None
         st.session_state.pop("_oauth_last_success_code", None)
         st.session_state.pop("intro_played", None)
+        st.query_params.clear()
         st.rerun()
 
     if needs_setup:
-        setup_page = st.Page("views/0_Home.py", title="Setup Profile", icon=None)
-        pg = st.navigation([setup_page])
+        pg = st.navigation([st.Page("views/0_Home.py", title="Setup Profile", icon=None)])
     else:
-        home             = st.Page("views/0_Home.py",            title="Edit Profile",       icon=None)
-        overview         = st.Page("views/1_Overview.py",         title="Overview",           icon=None)
-        risk_analysis    = st.Page("views/2_Risk_Analysis.py",    title="Risk Analysis",      icon=None)
-        career_roadmap   = st.Page("views/3_Career_Roadmap.py",  title="Career Roadmap",     icon=None)
-        placement_strategy = st.Page("views/4_Placement_Strategy.py", title="Placement Strategy", icon=None)
-
-        pg = st.navigation({
-            "Dashboard": [overview, risk_analysis, career_roadmap, placement_strategy],
-            "Settings":  [home]
-        })
+        # Routing based on query parameters
+        nav = st.query_params.get("nav", "Overview")
+        
+        pages = {
+            "Overview":           st.Page("views/1_Overview.py",         title="Overview"),
+            "Risk-Analysis":      st.Page("views/2_Risk_Analysis.py",    title="Risk Analysis"),
+            "Career-Roadmap":     st.Page("views/3_Career_Roadmap.py",  title="Career Roadmap"),
+            "Placement-Strategy": st.Page("views/4_Placement_Strategy.py", title="Placement Strategy"),
+            "Profile":            st.Page("views/0_Home.py",            title="Edit Profile")
+        }
+        
+        # Fallback to Overview if invalid nav
+        target_page = pages.get(nav, pages["Overview"])
+        pg = st.navigation([target_page])
 
     pg.run()

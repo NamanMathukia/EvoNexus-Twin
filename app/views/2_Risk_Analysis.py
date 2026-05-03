@@ -82,7 +82,7 @@ def create_pdf_report(result_data, filename="ENT_Report.pdf"):
     styles = getSampleStyleSheet()
     story = []
 
-    story.append(Paragraph("EvoNexus-Twin: Placement Risk Analysis", styles['Title']))
+    story.append(Paragraph("EvoNexus: Placement Risk Analysis", styles['Title']))
     story.append(Spacer(1, 12))
     story.append(Paragraph("Executive Summary", styles['Heading2']))
     story.append(Paragraph(f"<b>Predicted Salary:</b> Rs.{result_data.get('salary', 'N/A')} LPA", styles['Normal']))
@@ -141,7 +141,7 @@ st.markdown("""
     <h1 style="margin:0; font-size:2.4rem; font-weight:800;
                font-family:'Space Grotesk',sans-serif; color:#e2e8f0;
                letter-spacing:-0.02em;">
-        Risk & Performance Drivers
+        Risk and Performance Drivers
     </h1>
     <p style="color:#64748b; font-size:1rem; margin-top:10px; max-width:620px;">
         Provide a candidate's resume via text or file to generate a real-time risk assessment and intervention roadmap.
@@ -298,13 +298,13 @@ if "result" in st.session_state and "sample" in st.session_state:
         ))
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(15,23,42,0.6)",
+            plot_bgcolor="rgba(0,0,0,0)",
             font_color="#e2e8f0",
-            xaxis={"title": "SHAP Impact (Risk Contribution)", "gridcolor": "#1e293b"},
-            yaxis={"gridcolor": "#1e293b"},
+            xaxis={"title": "SHAP Impact (Risk Contribution)", "gridcolor": "rgba(51,65,85,0.3)"},
+            yaxis={"gridcolor": "rgba(51,65,85,0.3)"},
             height=450,
             margin=dict(l=20, r=80, t=20, b=20),
-            transition={"duration": 400},
+            transition={"duration": 500, "easing": "cubic-in-out"},
         )
         st.plotly_chart(fig, use_container_width=True)
 

@@ -30,12 +30,12 @@ def apply_custom_css():
     /* ── MAIN BACKGROUND ──────────────────────────────────────────────────── */
     .stApp {
         background: #070b14 !important;
-        background-image:
+        background-image: 
             radial-gradient(ellipse at 20% 10%, rgba(59,130,246,0.08) 0%, transparent 50%),
             radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 50%);
     }
     .main .block-container {
-        padding-top: 90px !important;
+        padding-top: 100px !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         max-width: 1400px !important;
@@ -46,22 +46,22 @@ def apply_custom_css():
         position: fixed;
         top: 0; left: 0; right: 0;
         z-index: 9999;
-        height: 62px;
+        height: 70px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 2rem;
-        background: rgba(7, 11, 20, 0.82);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(59, 130, 246, 0.18);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        padding: 0 3rem;
+        background: rgba(7, 11, 20, 0.75);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     }
     .ent-topbar-brand {
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.15rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
         background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -71,31 +71,32 @@ def apply_custom_css():
     .ent-topbar-nav {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.5rem;
     }
     .ent-nav-link {
-        color: #94a3b8;
+        color: #64748b;
         text-decoration: none;
-        font-size: 0.82rem;
-        font-weight: 500;
-        letter-spacing: 0.06em;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        padding: 6px 14px;
-        border-radius: 6px;
+        padding: 8px 18px;
+        border-radius: 8px;
         border: 1px solid transparent;
-        transition: color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         white-space: nowrap;
     }
     .ent-nav-link:hover {
         color: #e2e8f0;
-        background: rgba(59, 130, 246, 0.1);
-        border-color: rgba(59, 130, 246, 0.35);
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+        background: rgba(59, 130, 246, 0.08);
+        border-color: rgba(59, 130, 246, 0.25);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
     }
     .ent-nav-link.active {
         color: #60a5fa;
         background: rgba(59, 130, 246, 0.12);
         border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
     }
     .ent-topbar-right {
         display: flex;
@@ -131,35 +132,37 @@ def apply_custom_css():
 
     /* ── GLASSMORPHISM CONTAINERS ─────────────────────────────────────────── */
     [data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"],
-    [data-testid="column"] > div[data-testid="stVerticalBlock"] {
-        background: rgba(15, 23, 42, 0.55);
-        border: 1px solid rgba(51, 65, 85, 0.45);
-        border-radius: 14px;
-        padding: 1px;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    [data-testid="column"] > div[data-testid="stVerticalBlock"],
+    .stTabs, [data-testid="stExpander"] {
+        background: rgba(15, 23, 42, 0.4) !important;
+        border: 1px solid rgba(51, 65, 85, 0.4) !important;
+        border-radius: 20px !important;
+        padding: 24px !important;
+        backdrop-filter: blur(16px) saturate(120%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
     }
+    
     [data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"]:hover,
     [data-testid="column"] > div[data-testid="stVerticalBlock"]:hover {
-        border-color: rgba(59, 130, 246, 0.35);
-        box-shadow: 0 0 22px rgba(59, 130, 246, 0.12), 0 8px 32px rgba(0,0,0,0.35);
+        border-color: rgba(59, 130, 246, 0.4) !important;
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.15), 0 12px 40px rgba(0,0,0,0.4) !important;
+        transform: translateY(-2px);
     }
 
     /* ── METRIC CARDS ─────────────────────────────────────────────────────── */
     .metric-card {
-        background: linear-gradient(135deg, rgba(31,41,55,0.9) 0%, rgba(17,24,39,0.9) 100%);
-        border: 1px solid rgba(55, 65, 81, 0.7);
-        border-radius: 14px;
-        padding: 22px;
-        text-align: center;
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        backdrop-filter: blur(8px);
+        background: rgba(30, 41, 59, 0.45);
+        border: 1px solid rgba(55, 65, 81, 0.5);
+        border-radius: 16px;
+        padding: 24px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
     }
     .metric-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(0,0,0,0.45), 0 0 20px rgba(59,130,246,0.15);
-        border-color: rgba(59, 130, 246, 0.4);
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.2);
     }
 
     /* ── RISK BADGES ──────────────────────────────────────────────────────── */
@@ -170,14 +173,12 @@ def apply_custom_css():
 
     /* ── AGENT CARDS ──────────────────────────────────────────────────────── */
     .agent-card {
-        background: linear-gradient(135deg, rgba(30,41,59,0.85) 0%, rgba(15,23,42,0.85) 100%);
-        border: 1px solid rgba(51, 65, 85, 0.7);
-        border-radius: 14px;
-        padding: 22px;
-        margin-bottom: 12px;
-        height: 100%;
-        backdrop-filter: blur(10px);
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid rgba(51, 65, 85, 0.45);
+        border-radius: 20px;
+        padding: 24px;
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
     }
     .agent-card:hover {
         border-color: rgba(59, 130, 246, 0.4);
@@ -187,170 +188,105 @@ def apply_custom_css():
     /* ── SECTION HEADERS ──────────────────────────────────────────────────── */
     .section-header {
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.12em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
         color: #60a5fa;
-        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
-        padding-bottom: 8px;
-        margin: 28px 0 16px 0;
+        margin: 32px 0 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .section-header::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.3), transparent);
     }
 
     /* ── TIMELINE ─────────────────────────────────────────────────────────── */
     .timeline-item {
         border-left: 2px solid #3b82f6;
-        padding-left: 18px;
-        margin-bottom: 24px;
+        padding-left: 20px;
+        margin-bottom: 28px;
         position: relative;
-        transition: border-color 0.25s ease;
+        transition: border-color 0.3s ease;
     }
-    .timeline-item:hover { border-left-color: #60a5fa; }
     .timeline-dot {
-        width: 10px; height: 10px;
+        width: 12px; height: 12px;
         background: #3b82f6;
         border-radius: 50%;
-        position: absolute; left: -6px; top: 6px;
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+        position: absolute; left: -7px; top: 6px;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
     }
 
     /* ── SKILL PILLS ──────────────────────────────────────────────────────── */
     .skill-pill {
         display: inline-block;
-        background: rgba(30, 58, 95, 0.7);
+        background: rgba(59, 130, 246, 0.1);
         color: #93c5fd;
-        border: 1px solid rgba(59, 130, 246, 0.4);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         border-radius: 20px;
-        padding: 4px 14px;
-        font-size: 0.82rem;
+        padding: 5px 15px;
+        font-size: 0.8rem;
         margin: 4px;
-        transition: background 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.2s ease;
     }
     .skill-pill:hover {
         background: rgba(59, 130, 246, 0.2);
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
 
     /* ── SUMMARY BOX ──────────────────────────────────────────────────────── */
     .summary-box {
-        background: linear-gradient(135deg, rgba(30,58,95,0.6) 0%, rgba(15,39,68,0.6) 100%);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 14px;
-        padding: 26px;
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 20px;
+        padding: 30px;
         color: #e2e8f0;
-        line-height: 1.85;
-        font-size: 1.05rem;
-        backdrop-filter: blur(8px);
+        line-height: 1.8;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
     }
 
-    /* ── STREAMLIT NATIVE WIDGET OVERRIDES ────────────────────────────────── */
+    /* ── STREAMLIT WIDGET OVERRIDES ───────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: rgba(15, 23, 42, 0.6);
-        border-radius: 10px;
-        padding: 4px;
-        border: 1px solid rgba(51, 65, 85, 0.5);
+        background: transparent !important;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
     }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: #64748b;
-        transition: color 0.2s, background 0.2s;
-        padding: 8px 18px;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
+        color: #64748b !important;
     }
     .stTabs [aria-selected="true"] {
-        background: rgba(59, 130, 246, 0.15) !important;
         color: #60a5fa !important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+        border-bottom-color: #3b82f6 !important;
     }
+    
     div[data-testid="stMetric"] {
-        background: rgba(17, 24, 39, 0.7);
-        border: 1px solid rgba(55, 65, 81, 0.6);
-        border-radius: 12px;
-        padding: 16px 20px;
-        transition: box-shadow 0.25s ease;
+        background: rgba(15, 23, 42, 0.4) !important;
+        border: 1px solid rgba(51, 65, 85, 0.4) !important;
+        padding: 20px !important;
+        border-radius: 16px !important;
     }
-    div[data-testid="stMetric"]:hover {
-        box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
-    }
-    div[data-testid="stMetric"] label { color: #64748b !important; font-size: 0.78rem !important; letter-spacing: 0.08em; text-transform: uppercase; }
-    div[data-testid="stMetricValue"]  { color: #e2e8f0 !important; font-family: 'Space Grotesk', sans-serif; }
-    div[data-testid="stExpander"] {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid rgba(51, 65, 85, 0.5) !important;
-        border-radius: 10px !important;
-        transition: border-color 0.25s ease;
-    }
-    div[data-testid="stExpander"]:hover {
-        border-color: rgba(59, 130, 246, 0.35) !important;
-    }
-    textarea, input[type="text"], input[type="number"], .stTextArea textarea {
-        background: rgba(17, 24, 39, 0.8) !important;
-        border: 1px solid rgba(55, 65, 81, 0.7) !important;
-        border-radius: 8px !important;
-        color: #e2e8f0 !important;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    textarea:focus, input[type="text"]:focus {
-        border-color: rgba(59, 130, 246, 0.6) !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-    }
+
     .stButton > button {
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.04em !important;
-        transition: box-shadow 0.25s ease, transform 0.15s ease !important;
-    }
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
-        border: none !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
-    }
-    .stButton > button[kind="primary"]:hover {
-        box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5) !important;
-        transform: translateY(-1px) !important;
-    }
-    .stButton > button:not([kind="primary"]) {
-        background: rgba(30, 41, 59, 0.8) !important;
-        border: 1px solid rgba(51, 65, 85, 0.7) !important;
-        color: #94a3b8 !important;
-    }
-    .stButton > button:not([kind="primary"]):hover {
-        border-color: rgba(59, 130, 246, 0.4) !important;
-        color: #e2e8f0 !important;
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.15) !important;
-    }
-    .stFileUploader {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px dashed rgba(59, 130, 246, 0.35) !important;
         border-radius: 10px !important;
-        padding: 8px !important;
+        padding: 10px 24px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        font-size: 0.75rem !important;
     }
-    div[data-baseweb="select"] > div {
-        background: rgba(17, 24, 39, 0.8) !important;
-        border: 1px solid rgba(55, 65, 81, 0.7) !important;
-        border-radius: 8px !important;
-    }
-    .stSlider [data-baseweb="slider"] { }
-    .stSlider [data-baseweb="thumb"] {
-        background: #3b82f6 !important;
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.5) !important;
-    }
-    .stAlert {
-        border-radius: 10px !important;
-        border-left-width: 3px !important;
-    }
-    hr { border-color: rgba(51, 65, 85, 0.5) !important; }
-    h1, h2, h3 { font-family: 'Space Grotesk', sans-serif !important; }
 
     /* ── SCROLLBAR ────────────────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #070b14; }
-    ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.6); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.5); }
     </style>
     """, unsafe_allow_html=True)
 
@@ -358,20 +294,32 @@ def apply_custom_css():
 def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
     """
     Renders the sticky glassmorphic top navigation bar.
-    Returns True if the logout button was clicked.
+    Using query params for routing to keep it feeling like a single-page app.
     """
     name = (user_info or {}).get("name", "User")
     initials = "".join(p[0].upper() for p in name.split()[:2]) if name else "U"
+    
+    # Get current page from query params to set active class
+    current_nav = st.query_params.get("nav", "Overview")
+
+    nav_items = [
+        ("Overview", "Overview"),
+        ("Risk-Analysis", "Risk Analysis"),
+        ("Career-Roadmap", "Roadmap"),
+        ("Placement-Strategy", "Placement"),
+        ("Profile", "Profile")
+    ]
+
+    nav_html = ""
+    for nav_id, label in nav_items:
+        active_class = "active" if current_nav == nav_id else ""
+        nav_html += f'<a class="ent-nav-link {active_class}" href="/?nav={nav_id}" target="_self">{label}</a>'
 
     st.markdown(f"""
     <div class="ent-topbar">
-        <a class="ent-topbar-brand" href="/" target="_self">EVONEXUS-TWIN</a>
+        <a class="ent-topbar-brand" href="/?nav=Overview" target="_self">EVONEXUS-TWIN</a>
         <nav class="ent-topbar-nav">
-            <a class="ent-nav-link" href="/Overview"         target="_self">Overview</a>
-            <a class="ent-nav-link" href="/Risk-Analysis"    target="_self">Risk Analysis</a>
-            <a class="ent-nav-link" href="/Career-Roadmap"   target="_self">Career Roadmap</a>
-            <a class="ent-nav-link" href="/Placement-Strategy" target="_self">Placement</a>
-            <a class="ent-nav-link" href="/"                 target="_self">Profile</a>
+            {nav_html}
         </nav>
         <div class="ent-topbar-right">
             <div class="ent-user-chip">
@@ -382,12 +330,11 @@ def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
     </div>
     """, unsafe_allow_html=True)
 
-    # Real Streamlit logout button — hidden visually under the bar but functional
-    # We place it in a zero-height div trick so layout isn't disturbed
+    # Hidden functional logout button
     st.markdown("""
     <style>
     div[data-testid="stVerticalBlock"]:has(> div > .ent-logout-wrapper) {
-        position: fixed; top: 14px; right: 14px; z-index: 10000;
+        position: fixed; top: 18px; right: 2rem; z-index: 10000;
         width: auto !important; padding: 0 !important;
         background: transparent !important; border: none !important;
         box-shadow: none !important; backdrop-filter: none !important;
@@ -396,6 +343,17 @@ def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
     div[data-testid="stVerticalBlock"]:has(> div > .ent-logout-wrapper) > div {
         background: transparent !important; border: none !important;
         box-shadow: none !important; backdrop-filter: none !important;
+    }
+    .stButton > button[kind="secondary"] {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        font-size: 0.65rem !important;
+        padding: 4px 12px !important;
+    }
+    .stButton > button[kind="secondary"]:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
     }
     </style>
     <div class="ent-logout-wrapper"></div>
