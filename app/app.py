@@ -91,27 +91,30 @@ if _oauth_code and not st.session_state["authenticated"]:
 from streamlit_cookies_controller import CookieController
 controller = CookieController()
 
+# Save cookies if login just succeeded
 if st.session_state.get("_pending_cookie_save"):
-    user_info = st.session_state["user_info"]
-    controller.set('auth_email', user_info.get("email", ""))
-    controller.set('auth_name', user_info.get("name", ""))
+    uinfo = st.session_state["user_info"]
+    controller.set('auth_email', uinfo.get("email", ""))
+    controller.set('auth_name', uinfo.get("name", ""))
     st.session_state.pop("_pending_cookie_save", None)
 
-cookie_email = controller.get("auth_email")
-cookie_name = controller.get("auth_name")
-
-if cookie_email and not st.session_state["authenticated"] and not _oauth_code:
-    st.session_state["authenticated"] = True
-    st.session_state["user_info"] = {"email": cookie_email, "name": cookie_name or "User"}
+# Persistent check for cookies to avoid flicker on refresh
+if not st.session_state["authenticated"]:
+    c_email = controller.get("auth_email")
+    c_name = controller.get("auth_name")
+    if c_email:
+        st.session_state["authenticated"] = True
+        st.session_state["user_info"] = {"email": c_email, "name": c_name or "User"}
+        st.rerun()
 
 # --- 5. RENDER LOGIN PAGE ---
 def login_page():
     st.markdown("""
-    <div style="min-height:90vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 0 20px;">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px;">
         <div style="text-align:center; max-width: 440px; width:100%;">
             <div style="
                 font-family:'Space Grotesk',sans-serif;
-                font-size: 3.5rem;
+                font-size: 3rem;
                 font-weight: 800;
                 letter-spacing: -0.04em;
                 background: linear-gradient(90deg, #3b82f6, #a78bfa, #06b6d4);
@@ -120,18 +123,18 @@ def login_page():
                 margin-bottom: 0px;
                 line-height: 1;
             ">EVONEXUS</div>
-            <p style="color:#475569; font-size:0.75rem; letter-spacing:0.3em; text-transform:uppercase; margin-bottom: 40px; font-weight: 600;">
+            <p style="color:#475569; font-size:0.7rem; letter-spacing:0.3em; text-transform:uppercase; margin-bottom: 30px; font-weight: 600;">
                 Intelligence Engine
             </p>
             <div style="
                 background: rgba(15,23,42,0.6);
                 border: 1px solid rgba(51,65,85,0.4);
                 border-radius: 24px;
-                padding: 40px;
+                padding: 30px;
                 backdrop-filter: blur(20px);
                 box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             ">
-                <p style="color:#94a3b8; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:30px; font-weight:500;">
+                <p style="color:#94a3b8; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:24px; font-weight:500;">
                     Secure Authentication Required
                 </p>
     """, unsafe_allow_html=True)
@@ -145,22 +148,22 @@ def login_page():
             <div style="
                 background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
                 color: #f8fafc;
-                padding: 14px 24px;
+                padding: 12px 20px;
                 border: 1px solid rgba(59,130,246,0.3);
                 border-radius: 12px;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 font-weight: 700;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 12px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all 0.3s ease;
                 letter-spacing: 0.02em;
                 text-transform: uppercase;
             "
-            onmouseover="this.style.boxShadow='0 0 30px rgba(59,130,246,0.25)'; this.style.borderColor='rgba(59,130,246,0.6)'; this.style.background='rgba(59, 130, 246, 0.2)'"
-            onmouseout="this.style.boxShadow='none'; this.style.borderColor='rgba(59,130,246,0.3)'; this.style.background='rgba(59, 130, 246, 0.15)'"
+            onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'; this.style.borderColor='rgba(59,130,246,0.6)'"
+            onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59,130,246,0.3)'"
             >
                 <img src="https://www.google.com/favicon.ico" width="16" height="16" alt="G">
                 Sign in with Google
@@ -171,11 +174,22 @@ def login_page():
     st.markdown("</div></div></div>", unsafe_allow_html=True)
 
 if not st.session_state["authenticated"]:
-    pg = st.navigation([st.Page(login_page, title="Login", icon=None)])
-    pg.run()
-    st.stop()
+    # If we haven't confirmed no-cookie after a brief wait, show login
+    if not _oauth_code:
+        # Give CookieController a frame to load
+        if "cookie_wait" not in st.session_state:
+            st.session_state["cookie_wait"] = True
+            time.sleep(0.1)
+            st.rerun()
+            
+        pg = st.navigation([st.Page(login_page, title="Login", icon=None)])
+        pg.run()
+        st.stop()
+    else:
+        st.info("Verifying session...")
+        st.stop()
 
-# --- 6. SPLASH SCREEN (one-time per session, after login) ---
+# --- 6. SPLASH SCREEN ---
 if "intro_played" not in st.session_state:
     st.markdown("""
     <style>
@@ -230,48 +244,51 @@ if "intro_played" not in st.session_state:
     st.rerun()
 
 # --- 7. AUTHENTICATED APP ---
-def has_profile(email):
+def get_user_profile(email):
     users_file = os.path.join(os.path.dirname(__file__), "users.json")
     if not os.path.exists(users_file):
-        return False
+        return None
     try:
         with open(users_file, "r") as f:
-            users = json.load(f)
-            return email in users
+            return json.load(f).get(email)
     except:
-        return False
+        return None
 
-if st.session_state["authenticated"]:
-    user_email = st.session_state["user_info"].get("email")
-    needs_setup = not has_profile(user_email)
+# Restore profile results
+user_email = st.session_state["user_info"].get("email")
+profile = get_user_profile(user_email)
+needs_setup = profile is None
 
-    # Render top bar and capture logout signal
-    if render_topbar(st.session_state["user_info"], logout_key="main_logout"):
-        controller.remove('auth_email')
-        controller.remove('auth_name')
-        st.session_state["authenticated"] = False
-        st.session_state["user_info"] = None
-        st.session_state.pop("_oauth_last_success_code", None)
-        st.session_state.pop("intro_played", None)
-        st.query_params.clear()
-        st.rerun()
+if not needs_setup and "result" not in st.session_state:
+    from src.predict import predict_full
+    with st.spinner("Restoring intelligence state..."):
+        try:
+            st.session_state.result = predict_full(profile)
+            st.session_state.sample = profile
+        except:
+            needs_setup = True
 
-    if needs_setup:
-        pg = st.navigation([st.Page("views/0_Home.py", title="Setup Profile", icon=None)])
-    else:
-        # Routing based on query parameters
-        nav = st.query_params.get("nav", "Overview")
-        
-        pages = {
-            "Overview":           st.Page("views/1_Overview.py",         title="Overview"),
-            "Risk-Analysis":      st.Page("views/2_Risk_Analysis.py",    title="Risk Analysis"),
-            "Career-Roadmap":     st.Page("views/3_Career_Roadmap.py",  title="Career Roadmap"),
-            "Placement-Strategy": st.Page("views/4_Placement_Strategy.py", title="Placement Strategy"),
-            "Profile":            st.Page("views/0_Home.py",            title="Edit Profile")
-        }
-        
-        # Fallback to Overview if invalid nav
-        target_page = pages.get(nav, pages["Overview"])
-        pg = st.navigation([target_page])
+# Header/TopBar logic
+if render_topbar(st.session_state["user_info"], logout_key="main_logout"):
+    controller.remove('auth_email')
+    controller.remove('auth_name')
+    st.session_state["authenticated"] = False
+    st.session_state["user_info"] = None
+    st.session_state.pop("intro_played", None)
+    st.query_params.clear()
+    st.rerun()
 
-    pg.run()
+if needs_setup:
+    pg = st.navigation([st.Page("views/0_Home.py", title="Setup Profile")])
+else:
+    nav = st.query_params.get("nav", "Overview")
+    pages = {
+        "Overview":           st.Page("views/1_Overview.py"),
+        "Risk-Analysis":      st.Page("views/2_Risk_Analysis.py"),
+        "Career-Roadmap":     st.Page("views/3_Career_Roadmap.py"),
+        "Placement-Strategy": st.Page("views/4_Placement_Strategy.py"),
+        "Profile":            st.Page("views/0_Home.py")
+    }
+    pg = st.navigation([pages.get(nav, pages["Overview"])])
+
+pg.run()

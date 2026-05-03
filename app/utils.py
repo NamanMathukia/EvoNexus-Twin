@@ -35,7 +35,7 @@ def apply_custom_css():
             radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 50%);
     }
     .main .block-container {
-        padding-top: 100px !important;
+        padding-top: 80px !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         max-width: 1400px !important;
@@ -294,17 +294,15 @@ def apply_custom_css():
 def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
     """
     Renders the sticky glassmorphic top navigation bar.
-    Using query params for routing to keep it feeling like a single-page app.
+    Using standard links for maximum visual stability.
     """
     name = (user_info or {}).get("name", "User")
     initials = "".join(p[0].upper() for p in name.split()[:2]) if name else "U"
-    
-    # Get current page from query params to set active class
     current_nav = st.query_params.get("nav", "Overview")
 
     nav_items = [
         ("Overview", "Overview"),
-        ("Risk-Analysis", "Risk Analysis"),
+        ("Risk-Analysis", "Risk"),
         ("Career-Roadmap", "Roadmap"),
         ("Placement-Strategy", "Placement"),
         ("Profile", "Profile")
@@ -317,7 +315,7 @@ def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
 
     st.markdown(f"""
     <div class="ent-topbar">
-        <a class="ent-topbar-brand" href="/?nav=Overview" target="_self">EVONEXUS-TWIN</a>
+        <a class="ent-topbar-brand" href="/?nav=Overview" target="_self">EVONEXUS</a>
         <nav class="ent-topbar-nav">
             {nav_html}
         </nav>
@@ -350,10 +348,6 @@ def render_topbar(user_info: dict, logout_key: str = "topbar_logout"):
         border: 1px solid rgba(239, 68, 68, 0.2) !important;
         font-size: 0.65rem !important;
         padding: 4px 12px !important;
-    }
-    .stButton > button[kind="secondary"]:hover {
-        background: rgba(239, 68, 68, 0.2) !important;
-        border-color: rgba(239, 68, 68, 0.4) !important;
     }
     </style>
     <div class="ent-logout-wrapper"></div>
