@@ -304,14 +304,14 @@ if st.session_state["authenticated"]:
         st.rerun()
 
     if needs_setup:
-        setup_page = st.Page("views/0_🏠_Home.py", title="Setup Profile", icon=None)
+        setup_page = st.Page("views/0_Home.py", title="Setup Profile", icon=None)
         pg = st.navigation([setup_page])
     else:
-        home             = st.Page("views/0_🏠_Home.py",            title="Edit Profile",       icon=None)
-        overview         = st.Page("views/1_📊_Overview.py",         title="Overview",           icon=None)
-        risk_analysis    = st.Page("views/2_🔍_Risk_Analysis.py",    title="Risk Analysis",      icon=None)
-        career_roadmap   = st.Page("views/3_🛣️_Career_Roadmap.py",  title="Career Roadmap",     icon=None)
-        placement_strategy = st.Page("views/4_💼_Placement_Strategy.py", title="Placement Strategy", icon=None)
+        home             = st.Page("views/0_Home.py",            title="Edit Profile",       icon=None)
+        overview         = st.Page("views/1_Overview.py",         title="Overview",           icon=None)
+        risk_analysis    = st.Page("views/2_Risk_Analysis.py",    title="Risk Analysis",      icon=None)
+        career_roadmap   = st.Page("views/3_Career_Roadmap.py",  title="Career Roadmap",     icon=None)
+        placement_strategy = st.Page("views/4_Placement_Strategy.py", title="Placement Strategy", icon=None)
 
         pg = st.navigation({
             "Dashboard": [overview, risk_analysis, career_roadmap, placement_strategy],
